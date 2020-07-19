@@ -166,7 +166,7 @@ class ScrollablePositionedList extends StatefulWidget {
 
 /// Controller to jump or scroll to a particular position in a
 /// [ScrollablePositionedList].
-class ItemScrollController {
+class ItemScrollController extends ScrollController{
   /// Whether any ScrollablePositionedList objects are attached this object.
   ///
   /// If `false`, then [jumpTo] and [scrollTo] must not be called.
@@ -176,7 +176,7 @@ class ItemScrollController {
 
   /// Immediately, without animation, reconfigure the list so that item at
   /// [index]'s leading edge is at the given [alignment].
-  void jumpTo({@required int index, double alignment = 0}) {
+  void jumpToIndex({@required int index, double alignment = 0}) {
     _scrollableListState._jumpTo(index: index, alignment: alignment);
   }
 
