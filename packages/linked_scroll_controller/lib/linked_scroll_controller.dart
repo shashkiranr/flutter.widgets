@@ -119,7 +119,7 @@ class _LinkedScrollController extends ItemScrollController {
   final LinkedScrollControllerGroup _controllers;
 
   _LinkedScrollController(this._controllers, {double initialScrollOffset})
-      : super(initialScrollOffset: initialScrollOffset ?? 0.0);
+      : super(initialScrollOffset: initialScrollOffset == null ? 0.0 : initialScrollOffset);
 
   @override
   void dispose() {
