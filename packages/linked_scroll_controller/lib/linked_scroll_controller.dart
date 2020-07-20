@@ -118,7 +118,8 @@ class _LinkedScrollControllerGroupOffsetNotifier extends ChangeNotifier {
 class _LinkedScrollController extends ItemScrollController {
   final LinkedScrollControllerGroup _controllers;
 
-  _LinkedScrollController(this._controllers, {double initialScrollOffset});
+  _LinkedScrollController(this._controllers, {double initialScrollOffset})
+      : super(initialScrollOffset: initialScrollOffset);
 
   @override
   void dispose() {
