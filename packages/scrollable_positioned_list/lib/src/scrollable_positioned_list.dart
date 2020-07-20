@@ -166,7 +166,10 @@ class ScrollablePositionedList extends StatefulWidget {
 
 /// Controller to jump or scroll to a particular position in a
 /// [ScrollablePositionedList].
-class ItemScrollController extends ScrollController{
+class ItemScrollController extends ScrollController {
+  ItemScrollController({double initialScrollOffset})
+      : super(initialScrollOffset: initialScrollOffset);
+
   /// Whether any ScrollablePositionedList objects are attached this object.
   ///
   /// If `false`, then [jumpTo] and [scrollTo] must not be called.
@@ -214,8 +217,7 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
   final backItemPositionNotifier = ItemPositionsNotifier();
   final frontScrollController = ScrollController(keepScrollOffset: false);
   final backScrollController = ScrollController(keepScrollOffset: false);
-  final frontOpacity =
-      ProxyAnimation(const AlwaysStoppedAnimation<double>(1.0));
+  final frontOpacity = ProxyAnimation(const AlwaysStoppedAnimation<double>(1.0));
 
   int backTarget = 0;
   double backAlignment = 0;
@@ -231,11 +233,8 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
     super.initState();
     ItemPosition initialPosition = PageStorage.of(context).readState(context);
     frontTarget = initialPosition?.index ?? widget.initialScrollIndex;
-    frontAlignment =
-        initialPosition?.itemLeadingEdge ?? widget.initialAlignment;
-    if (widget.itemCount != null &&
-        widget.itemCount > 0 &&
-        frontTarget > widget.itemCount - 1) {
+    frontAlignment = initialPosition?.itemLeadingEdge ?? widget.initialAlignment;
+    if (widget.itemCount != null && widget.itemCount > 0 && frontTarget > widget.itemCount - 1) {
       frontTarget = widget.itemCount - 1;
     }
     widget.itemScrollController?._attach(this);
@@ -357,13 +356,12 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
         ),
       );
 
-  double _cacheExtent(BoxConstraints constraints) =>
-      widget.minCacheExtent == null
-          ? constraints.maxHeight * _screenScrollCount
-          : max(
-              constraints.maxHeight * _screenScrollCount,
-              widget.minCacheExtent,
-            );
+  double _cacheExtent(BoxConstraints constraints) => widget.minCacheExtent == null
+      ? constraints.maxHeight * _screenScrollCount
+      : max(
+          constraints.maxHeight * _screenScrollCount,
+          widget.minCacheExtent,
+        );
 
   void _jumpTo({@required int index, double alignment}) {
     cancelScrollCallback?.call();
@@ -404,8 +402,7 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
         );
       });
     } else {
-      await _startScroll(
-          index: index, alignment: alignment, duration: duration, curve: curve);
+      await _startScroll(index: index, alignment: alignment, duration: duration, curve: curve);
     }
   }
 
@@ -417,18 +414,14 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
     final lastTarget = _showFrontList ? frontTarget : backTarget;
     final direction = index > lastTarget ? 1 : -1;
     final startingListDisplay = listDisplay;
-    final startingScrollController =
-        _showFrontList ? frontScrollController : backScrollController;
-    final itemPosition = (_showFrontList
-            ? frontItemPositionNotifier
-            : backItemPositionNotifier)
+    final startingScrollController = _showFrontList ? frontScrollController : backScrollController;
+    final itemPosition = (_showFrontList ? frontItemPositionNotifier : backItemPositionNotifier)
         .itemPositions
         .value
-        .firstWhere((ItemPosition itemPosition) => itemPosition.index == index,
-            orElse: () => null);
+        .firstWhere((ItemPosition itemPosition) => itemPosition.index == index, orElse: () => null);
     if (itemPosition != null) {
-      final localScrollAmount = itemPosition.itemLeadingEdge *
-          startingScrollController.position.viewportDimension;
+      final localScrollAmount =
+          itemPosition.itemLeadingEdge * startingScrollController.position.viewportDimension;
       await startingScrollController.animateTo(
           startingScrollController.offset +
               localScrollAmount -
@@ -436,22 +429,18 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
           duration: duration,
           curve: curve);
     } else {
-      final scrollAmount = _screenScrollCount *
-          startingScrollController.position.viewportDimension;
-      final endingScrollController =
-          _showFrontList ? backScrollController : frontScrollController;
+      final scrollAmount = _screenScrollCount * startingScrollController.position.viewportDimension;
+      final endingScrollController = _showFrontList ? backScrollController : frontScrollController;
       final startCompleter = Completer<void>();
       final endCompleter = Completer<void>();
       startAnimationCallback = () {
         SchedulerBinding.instance.addPostFrameCallback((_) async {
-          frontOpacity.parent = _opacityAnimation(startingListDisplay).animate(
-              AnimationController(vsync: this, duration: duration)..forward());
+          frontOpacity.parent = _opacityAnimation(startingListDisplay)
+              .animate(AnimationController(vsync: this, duration: duration)..forward());
           startAnimationCallback = () {};
           endingScrollController.jumpTo(-direction *
-              (_screenScrollCount *
-                      startingScrollController.position.viewportDimension -
-                  alignment *
-                      endingScrollController.position.viewportDimension));
+              (_screenScrollCount * startingScrollController.position.viewportDimension -
+                  alignment * endingScrollController.position.viewportDimension));
           endCompleter.complete(endingScrollController.animateTo(
               -alignment * endingScrollController.position.viewportDimension,
               duration: duration,
@@ -473,15 +462,13 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
       });
       endScrollCallback = () {
         setState(() {
-          listDisplay = startingListDisplay == _ListDisplay.front
-              ? _ListDisplay.back
-              : _ListDisplay.front;
+          listDisplay =
+              startingListDisplay == _ListDisplay.front ? _ListDisplay.back : _ListDisplay.front;
         });
         cancelScrollCallback = null;
         endScrollCallback = null;
       };
-      return Future.wait<void>(
-              <Future<void>>[startCompleter.future, endCompleter.future])
+      return Future.wait<void>(<Future<void>>[startCompleter.future, endCompleter.future])
           .then((_) async {
         endScrollCallback?.call();
       });
@@ -491,23 +478,20 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
   void _cancelScroll(_ListDisplay startingListDisplay) {
     frontScrollController.jumpTo(frontScrollController.offset);
     backScrollController.jumpTo(backScrollController.offset);
-    if (startingListDisplay == _ListDisplay.front &&
-        frontOpacity.value >= 0.5) {
+    if (startingListDisplay == _ListDisplay.front && frontOpacity.value >= 0.5) {
       setState(() {
         listDisplay = _ListDisplay.front;
         frontOpacity.parent = const AlwaysStoppedAnimation<double>(1.0);
       });
       cancelScrollCallback = null;
       endScrollCallback = null;
-    } else if (startingListDisplay == _ListDisplay.back &&
-        frontOpacity.value <= 0.5) {
+    } else if (startingListDisplay == _ListDisplay.back && frontOpacity.value <= 0.5) {
       setState(() {
         listDisplay = _ListDisplay.back;
       });
       cancelScrollCallback = null;
       endScrollCallback = null;
-    } else if (startingListDisplay == _ListDisplay.back &&
-        frontOpacity.value > 0.5) {
+    } else if (startingListDisplay == _ListDisplay.back && frontOpacity.value > 0.5) {
       setState(() {
         listDisplay = _ListDisplay.front;
         frontOpacity.parent = const AlwaysStoppedAnimation<double>(1.0);
@@ -521,37 +505,28 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
     final startOpacity = startListDisplay == _ListDisplay.front ? 1.0 : 0.0;
     final endOpacity = 1 - startOpacity;
     return TweenSequence<double>(<TweenSequenceItem<double>>[
+      TweenSequenceItem<double>(tween: ConstantTween<double>(startOpacity), weight: 40),
       TweenSequenceItem<double>(
-          tween: ConstantTween<double>(startOpacity), weight: 40),
-      TweenSequenceItem<double>(
-          tween: Tween<double>(begin: startOpacity, end: endOpacity),
-          weight: 20),
-      TweenSequenceItem<double>(
-          tween: ConstantTween<double>(endOpacity), weight: 40),
+          tween: Tween<double>(begin: startOpacity, end: endOpacity), weight: 20),
+      TweenSequenceItem<double>(tween: ConstantTween<double>(endOpacity), weight: 40),
     ]);
   }
 
-  bool get _showBackList =>
-      listDisplay == _ListDisplay.back || listDisplay == _ListDisplay.both;
+  bool get _showBackList => listDisplay == _ListDisplay.back || listDisplay == _ListDisplay.both;
 
-  bool get _showFrontList =>
-      listDisplay == _ListDisplay.front || listDisplay == _ListDisplay.both;
+  bool get _showFrontList => listDisplay == _ListDisplay.front || listDisplay == _ListDisplay.both;
 
   void _updatePositions() {
     final itemPositions = _showFrontList
-        ? frontItemPositionNotifier.itemPositions.value.where(
-            (ItemPosition position) =>
-                position.itemLeadingEdge < 1 && position.itemTrailingEdge > 0)
-        : backItemPositionNotifier.itemPositions.value.where(
-            (ItemPosition position) =>
-                position.itemLeadingEdge < 1 && position.itemTrailingEdge > 0);
+        ? frontItemPositionNotifier.itemPositions.value.where((ItemPosition position) =>
+            position.itemLeadingEdge < 1 && position.itemTrailingEdge > 0)
+        : backItemPositionNotifier.itemPositions.value.where((ItemPosition position) =>
+            position.itemLeadingEdge < 1 && position.itemTrailingEdge > 0);
     if (itemPositions.isNotEmpty) {
       PageStorage.of(context).writeState(
           context,
           itemPositions.reduce((value, element) =>
-              value.itemLeadingEdge < element.itemLeadingEdge
-                  ? value
-                  : element));
+              value.itemLeadingEdge < element.itemLeadingEdge ? value : element));
     }
     widget.itemPositionNotifier?.itemPositions?.value = itemPositions;
   }
