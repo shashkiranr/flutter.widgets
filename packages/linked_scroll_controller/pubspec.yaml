@@ -14,5 +14,7 @@ dependencies:
 
 dev_dependencies:
   pedantic: ^1.8.0
+  scrollable_positioned_list:
+    path: ../scrollable_positioned_list
   flutter_test:
     sdk: flutter

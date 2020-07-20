@@ -6,6 +6,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 /// Sets up a collection of scroll controllers that mirror their movements to
 /// each other.
@@ -40,11 +41,9 @@ class LinkedScrollControllerGroup {
 
   /// Creates a new controller that is linked to any existing ones.
   ScrollController addAndGet() {
-    final initialScrollOffset = _attachedControllers.isEmpty
-        ? 0.0
-        : _attachedControllers.first.position.pixels;
-    final controller =
-        _LinkedScrollController(this, initialScrollOffset: initialScrollOffset);
+    final initialScrollOffset =
+        _attachedControllers.isEmpty ? 0.0 : _attachedControllers.first.position.pixels;
+    final controller = _LinkedScrollController(this, initialScrollOffset: initialScrollOffset);
     _allControllers.add(controller);
     controller.addListener(_offsetNotifier.notifyListeners);
     return controller;
@@ -71,8 +70,7 @@ class LinkedScrollControllerGroup {
   }) async {
     final animations = <Future<void>>[];
     for (final controller in _attachedControllers) {
-      animations
-          .add(controller.animateTo(offset, duration: duration, curve: curve));
+      animations.add(controller.animateTo(offset, duration: duration, curve: curve));
     }
     return Future.wait<void>(animations).then<void>((List<void> _) => null);
   }
@@ -117,11 +115,10 @@ class _LinkedScrollControllerGroupOffsetNotifier extends ChangeNotifier {
 
 /// A scroll controller that mirrors its movements to a peer, which must also
 /// be a [_LinkedScrollController].
-class _LinkedScrollController extends ScrollController {
+class _LinkedScrollController extends ItemScrollController {
   final LinkedScrollControllerGroup _controllers;
 
-  _LinkedScrollController(this._controllers, {double initialScrollOffset})
-      : super(initialScrollOffset: initialScrollOffset);
+  _LinkedScrollController(this._controllers, {double initialScrollOffset});
 
   @override
   void dispose() {
@@ -142,8 +139,8 @@ class _LinkedScrollController extends ScrollController {
   }
 
   @override
-  _LinkedScrollPosition createScrollPosition(ScrollPhysics physics,
-      ScrollContext context, ScrollPosition oldPosition) {
+  _LinkedScrollPosition createScrollPosition(
+      ScrollPhysics physics, ScrollContext context, ScrollPosition oldPosition) {
     return _LinkedScrollPosition(
       this,
       physics: physics,
@@ -163,9 +160,7 @@ class _LinkedScrollController extends ScrollController {
 
   Iterable<_LinkedScrollActivity> linkWithPeers(_LinkedScrollPosition driver) {
     assert(canLinkWithPeers);
-    return _allPeersWithClients
-        .map((peer) => peer.link(driver))
-        .expand((e) => e);
+    return _allPeersWithClients.map((peer) => peer.link(driver)).expand((e) => e);
   }
 
   Iterable<_LinkedScrollActivity> link(_LinkedScrollPosition driver) {
@@ -240,9 +235,8 @@ class _LinkedScrollPosition extends ScrollPositionWithSingleContext {
     if (newPixels == pixels) {
       return 0.0;
     }
-    updateUserScrollDirection(newPixels - pixels > 0.0
-        ? ScrollDirection.forward
-        : ScrollDirection.reverse);
+    updateUserScrollDirection(
+        newPixels - pixels > 0.0 ? ScrollDirection.forward : ScrollDirection.reverse);
 
     if (owner.canLinkWithPeers) {
       _peerActivities.addAll(owner.linkWithPeers(this));
@@ -263,9 +257,8 @@ class _LinkedScrollPosition extends ScrollPositionWithSingleContext {
     if (value == pixels) {
       return;
     }
-    updateUserScrollDirection(value - pixels > 0.0
-        ? ScrollDirection.forward
-        : ScrollDirection.reverse);
+    updateUserScrollDirection(
+        value - pixels > 0.0 ? ScrollDirection.forward : ScrollDirection.reverse);
 
     if (owner.canLinkWithPeers) {
       _peerActivities.addAll(owner.linkWithPeers(this));
